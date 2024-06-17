@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>SSE Client</title>
+	</head>
+	<body>
+		<h1>Server-Sent Events Demo</h1>
+		<div id="messages"></div>
+	</body>
+	<script>
+		document.addEventListener('DOMContentLoaded', () => {
+			const eventSource = new EventSource('http://localhost:3000/serverside-events');
+			const messagesDiv = document.getElementById('messages');
+
+			eventSource.onopen = function (event) {
+				console.log('Connection to server opened.');
+				messagesDiv.innerHTML += '<p>Connection to server opened.</p>';
+			};
+
+			eventSource.onmessage = function (event) {
+				console.log('New message:', event);
+				messagesDiv.innerHTML += `<p>Message: ${event.data}</p>`;
+			};
+
+			eventSource.onerror = function (event) {
+				console.error('Error occurred:', event);
+				if (eventSource.readyState === EventSource.CLOSED) {
+					console.log('Connection was closed.');
+					messagesDiv.innerHTML += '<p>Connection was closed.</p>';
+				} else if (eventSource.readyState === EventSource.CONNECTING) {
+					console.log('Reconnecting...');
+					messagesDiv.innerHTML += '<p>Reconnecting...</p>';
+				} else {
+					console.log('Unknown error state.');
+					messagesDiv.innerHTML += '<p>Unknown error state.</p>';
+				}
+			};
+
+			eventSource.addEventListener('ping', function (event) {
+				console.log('Ping event received:', event.data);
+				messagesDiv.innerHTML += `<p>Ping event: ${event.data}</p>`;
+			});
+		});
+	</script>
+</html>
